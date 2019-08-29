@@ -23,12 +23,16 @@ namespace tflite {
 
 uint8_t* AlignPointerRoundUp(uint8_t* data, size_t alignment);
 
+uint8_t* AlignPointerRoundDown(uint8_t* data, size_t alignment);
+
 TfLiteStatus TfLiteTypeSizeOf(TfLiteType type, size_t* size,
                               ErrorReporter* reporter);
 
 TfLiteStatus BytesRequired(const tflite::Tensor& flatbuffer_tensor,
                            size_t dims_size, size_t* bytes, size_t* type_size,
                            ErrorReporter* error_reporter);
+
+void MoveBuffers(void *dest, const void *src, size_t n) ;
 
 } // namespace tflite
 

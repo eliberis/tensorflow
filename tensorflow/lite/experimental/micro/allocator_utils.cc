@@ -16,12 +16,28 @@ limitations under the License.
 #include "tensorflow/lite/experimental/micro/allocator_utils.h"
 #include "tensorflow/lite/core/api/flatbuffer_conversions.h"
 
+#if __ANDROID__ || defined(__x86_64__) || defined(__i386__) || \
+    defined(__i386) || defined(__x86__) || defined(__X86__) || \
+    defined(_X86_) || defined(_M_IX86) || defined(_M_X64)
+#include <cstring>
+#define HAS_STDLIB_MEMMOVE 1
+#else
+#define HAS_STDLIB_MEMMOVE 0
+#endif
+
 namespace tflite {
 
 uint8_t* AlignPointerRoundUp(uint8_t* data, size_t alignment) {
   size_t data_as_size_t = reinterpret_cast<size_t>(data);
   uint8_t* aligned_result = reinterpret_cast<uint8_t*>(
           ((data_as_size_t + (alignment - 1)) / alignment) * alignment);
+  return aligned_result;
+}
+
+uint8_t* AlignPointerRoundDown(uint8_t* data, size_t alignment) {
+  size_t data_as_size_t = reinterpret_cast<size_t>(data);
+  uint8_t* aligned_result = reinterpret_cast<uint8_t*>(
+          (data_as_size_t / alignment) * alignment);
   return aligned_result;
 }
 
@@ -70,6 +86,26 @@ TfLiteStatus BytesRequired(const tflite::Tensor& flatbuffer_tensor,
           TfLiteTypeSizeOf(tf_lite_type, type_size, error_reporter));
   *bytes = dims_size * (*type_size);
   return kTfLiteOk;
+}
+
+void MoveBuffers(void *dest, const void *src, size_t n) {
+#if HAS_STDLIB_MEMMOVE
+  memmove(dest, src, n);
+#else
+  char* destination = reinterpret_cast<char*>(dest);
+  const char* source = reinterpret_cast<const char*>(src);
+  if (destination < source) {
+    // Copy forward
+    for (size_t i = 0; i < n; i++) {
+      destination[i] = source[i];
+    }
+  } else {
+    // Copy backwards
+    for (size_t i = n; i > 0; i--) {
+      destination[i - 1] = source[i - 1];
+    }
+  }
+#endif
 }
 
 } // namespace tflite

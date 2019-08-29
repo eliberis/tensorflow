@@ -18,6 +18,7 @@ limitations under the License.
 #include "tensorflow/lite/c/c_api_internal.h"
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/experimental/micro/simple_tensor_allocator.h"
+#include "tensorflow/lite/experimental/micro/dynamic_tensor_allocator.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
 namespace tflite {
@@ -71,7 +72,7 @@ class MicroAllocator {
   TfLiteStatus DeallocateTensorBuffer(TfLiteTensor* tensor, ErrorReporter* error_reporter);
 
   const Model* model_;
-  SimpleTensorAllocator tensor_allocator_;
+  DynamicTensorAllocator tensor_allocator_;
   ErrorReporter* error_reporter_;
   TfLiteContext* context_;
 
