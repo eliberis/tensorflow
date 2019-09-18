@@ -121,12 +121,13 @@ TfLiteStatus MicroAllocator::InitialiseTensor(
   }
 
   uint8_t *dims_memory;
+  unsigned int tensor_shape_length = flatbuffer_tensor.shape() == nullptr? 0 : flatbuffer_tensor.shape()->Length();
   TF_LITE_ENSURE_STATUS(tensor_allocator_.AllocateStaticMemory(
-          sizeof(int) * (flatbuffer_tensor.shape()->Length() + 1), sizeof(int), error_reporter, &dims_memory));
+          sizeof(int) * (tensor_shape_length + 1), sizeof(int), error_reporter, &dims_memory));
   result->dims = reinterpret_cast<TfLiteIntArray*>(dims_memory);
 
-  result->dims->size = flatbuffer_tensor.shape()->Length();
-  for (size_t n = 0; n < flatbuffer_tensor.shape()->Length(); ++n) {
+  result->dims->size = tensor_shape_length;
+  for (size_t n = 0; n < tensor_shape_length; ++n) {
     result->dims->data[n] = flatbuffer_tensor.shape()->Get(n);
   }
   const auto* src_quantization = flatbuffer_tensor.quantization();
